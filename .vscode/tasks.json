@@ -1,0 +1,79 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "A2A Agent",
+            "type": "shell",
+            "options": {
+                "cwd": "${workspaceFolder}/a2a-agent"
+            },
+            "command": "uv run a2a-agent",
+            "presentation": {
+                "panel": "dedicated",
+            }
+        },
+        {
+            "label": "A2A Inspector",
+            "type": "shell",
+            "options": {
+                "cwd": "${workspaceFolder}/a2a-inspector"
+            },
+            "command": "sh run.sh",
+            "presentation": {
+                "panel": "dedicated",
+            }
+        },
+        {
+            "label": "Documentation Scraper",
+            "type": "shell",
+            "options": {
+                "cwd": "${workspaceFolder}/doc-scraper"
+            },
+            "command": "uv run main.py",
+            "presentation": {
+                "panel": "dedicated",
+            }
+        },
+        {
+            "label": "MCP Inspector",
+            "type": "shell",
+            "options": {
+                "cwd": "${workspaceFolder}/mcp-inspector"
+            },
+            "command": "sh run.sh",
+            "presentation": {
+                "panel": "dedicated",
+            }
+        },
+        {
+            "label": "MCP Server",
+            "type": "shell",
+            "options": {
+                "cwd": "${workspaceFolder}/mcp-server"
+            },
+            "command": "uv run mcp-server",
+            "presentation": {
+                "panel": "dedicated",
+            }
+        },
+        {
+            "label": "Vector Store",
+            "type": "shell",
+            "options": {
+                "cwd": "${workspaceFolder}/vector-store"
+            },
+            "command": "sh run-in-container.sh",
+            "presentation": {
+                "panel": "dedicated",
+            }
+        },
+        {
+            "label": "Run Only Apps",
+            "dependsOn": [
+                "MCP Server",
+                "A2A Agent",
+            ],
+            "dependsOrder": "parallel"
+        }
+    ]
+}
