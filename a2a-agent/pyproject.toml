@@ -1,0 +1,26 @@
+[project]
+name = "a2a-agent"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Chintan Soni", email = "ichintansoni@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "a2a-sdk>=0.3.22",
+    "click>=8.3.1",
+    "langchain>=1.2.0",
+    "langchain-mcp-adapters>=0.2.1",
+    "langchain-ollama>=1.0.1",
+    "sse-starlette>=3.0.4",
+    "starlette>=0.50.0",
+    "uvicorn>=0.38.0",
+]
+
+[project.scripts]
+a2a-agent = "a2a_agent:main"
+
+[build-system]
+requires = ["uv_build>=0.9.8,<0.10.0"]
+build-backend = "uv_build"
