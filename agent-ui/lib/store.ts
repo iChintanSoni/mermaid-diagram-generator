@@ -1,10 +1,12 @@
 import { configureStore } from "@reduxjs/toolkit";
-import addAgentReducer from "@/lib/features/add-agent-slice";
+import agentsReducer from "@/lib/features/agents-slice";
+import chatReducer from "@/lib/features/chat-slice";
 
 export const makeStore = () => {
   return configureStore({
     reducer: {
-      addAgent: addAgentReducer,
+      agents: agentsReducer,
+      chat: chatReducer,
     },
   });
 };

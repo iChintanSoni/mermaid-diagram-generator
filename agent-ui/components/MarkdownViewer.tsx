@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useRef } from "react";
 import { marked, type RendererObject, type Tokens } from "marked";
 import mermaid from "mermaid";
-import { ArrowUpIcon, CopyIcon } from "lucide-react";
+import { CopyIcon } from "lucide-react";
 import { Button } from "./ui/button";
 
 type MarkdownViewerProps = {
@@ -24,7 +24,7 @@ const renderer: RendererObject = {
     const { text, lang } = token;
 
     if (lang === "mermaid") {
-      return `<div class="mermaid my-3">${text}</div>`;
+      return `<div class="mermaid my-4 p-4 bg-white w-fit">${text}</div>`;
     }
 
     return `
@@ -90,7 +90,7 @@ export const MarkdownViewer: React.FC<MarkdownViewerProps> = ({
         variant="ghost"
         size="icon"
         aria-label="Copy"
-        className="absolute right-1 top-1"
+        className="absolute right-0 top-0"
         onClick={handleCopy}
       >
         <CopyIcon />

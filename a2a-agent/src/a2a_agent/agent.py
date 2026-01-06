@@ -1,5 +1,6 @@
+from a2a_agent.utils.env import Env
 from typing import List, Literal
-from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.redis import AsyncRedisSaver
 from langchain.agents import create_agent
 from pydantic import BaseModel
 from a2a_agent.utils.llm_model import model
@@ -10,10 +11,9 @@ from langchain_core.runnables.config import RunnableConfig
 from a2a_agent.utils.logger import setup_logger
 from langchain_core.tools.base import BaseTool
 
-
 _logger = setup_logger(__name__)
 
-memory = MemorySaver()
+env = Env()
 
 
 class ResponseFormat(BaseModel):
@@ -125,14 +125,20 @@ class MermaidAgent:
     def __init__(self):
         self._model = model
         self._graph = None
+        self._checkpointer = None
 
     async def _init(self):
         tools = await mcp_client.get_tools()
         _log_tools(tools)
+
+        # Initialize Redis Saver
+        self._checkpointer = AsyncRedisSaver(env.REDIS_URL)
+        await self._checkpointer.asetup()
+
         self._graph = create_agent(
             model=self._model,
             tools=tools,
-            checkpointer=memory,
+            checkpointer=self._checkpointer,
             system_prompt=self.SYSTEM_INSTRUCTION,
         )
 
@@ -140,29 +146,93 @@ class MermaidAgent:
         try:
             if self._graph is None:
                 await self._init()
-            message = get_message_text(input)
+
+            message_text = get_message_text(input)
+            thread_id = input.context_id if input.context_id else "default_thread"
+
+            _logger.info(
+                f"Processing message for thread {thread_id}: {message_text[:100]}...")
+
+            # Merge thread_id into config
+            run_config = config or {}
+            if "configurable" not in run_config:
+                run_config["configurable"] = {}
+            run_config["configurable"]["thread_id"] = thread_id
+
             result = await self._graph.ainvoke(
                 {
                     "messages": [
                         {
                             "role": "user",
-                            "content": message
+                            "content": message_text
                         }
                     ]
                 },
-                config=config
+                {"configurable": {"thread_id": thread_id}},
             )
             final_message = result["messages"][-1]
+            response_content = final_message.content if hasattr(
+                final_message, 'content') else str(final_message)
+            _logger.info(f"Completed processing for thread {thread_id}")
+
             return ResponseFormat(
                 status="completed",
-                message=final_message.content if hasattr(
-                    final_message, 'content') else str(final_message)
+                message=response_content
             )
         except Exception as e:
-            _logger.error(str(e))
+            _logger.error(f"Error processing message: {str(e)}")
             return ResponseFormat(
                 status="error",
                 message=str(e)
             )
+
+    async def astream(self, input: Message, config: RunnableConfig):
+        """Streams tokens from the agent."""
+        if self._graph is None:
+            await self._init()
+
+        message_text = get_message_text(input)
+        thread_id = input.context_id if input.context_id else "default_thread"
+        _logger.info(f"Incoming ThreadId: {thread_id}")
+
+        _logger.info(
+            f"Starting stream for thread {thread_id}: {message_text[:100]}...")
+
+        try:
+            async for msg, metadata in self._graph.astream(
+                {
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": message_text
+                        }
+                    ]
+                },
+                config=config,
+                stream_mode="updates",
+            ):
+                # _logger.debug(f"Stream msg: {msg} metadata: {metadata}")
+
+                if msg.content:
+                    yield msg.content
+
+                # Check for tool usage in the message chunk
+                if hasattr(msg, 'tool_call_chunks') and msg.tool_call_chunks:
+                    # Only yield status if it's the first chunk of a tool call or similar?
+                    # For now, simplistic approach: if we see tool chunks, we can log or yield status.
+                    # But msg.tool_call_chunks is a list of ToolCallChunk.
+                    # We can't easily get the tool name from the first chunk always if it's split.
+                    # However, let's keep it simple for now and rely on content validation.
+                    pass
+
+                # If we want to simulate "on_tool_start", we might need to check the metadata or msg type
+                # But stream_mode="messages" focuses on AIMessages.
+                # To get tool updates, we might need stream_mode=["messages", "updates"]
+
+            _logger.info(f"Finished stream for thread {thread_id}")
+        except Exception as e:
+            _logger.error(
+                f"Error during streaming for thread {thread_id}: {str(e)}", exc_info=True)
+            yield f"\n\nError processing request: {str(e)}"
 
     SUPPORTED_CONTENT_TYPES = ['text']

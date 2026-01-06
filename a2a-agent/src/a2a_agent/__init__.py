@@ -13,6 +13,7 @@ from a2a_agent.agent import MermaidAgent
 from a2a_agent.agent_executor import MermaidAgentExecutor
 from a2a_agent.utils.env import Env
 from a2a_agent.utils.logger import setup_logger
+from starlette.middleware.cors import CORSMiddleware
 
 _logger = setup_logger(__name__)
 
@@ -26,7 +27,7 @@ def main(host: str, port: int):
     """Starts the Mermaid Diagram Agent server."""
     try:
         capabilities = AgentCapabilities(
-            streaming=False,
+            streaming=True,
             push_notifications=False
         )
         skill = AgentSkill(
@@ -75,11 +76,21 @@ def main(host: str, port: int):
             agent_executor=MermaidAgentExecutor(),
             task_store=InMemoryTaskStore(),
         )
+
         server = A2AStarletteApplication(
             agent_card=agent_card, http_handler=request_handler
         )
+        
+        app = server.build()
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
 
-        uvicorn.run(server.build(), host=host, port=port)
+        uvicorn.run(app, host=host, port=port)
     except Exception as e:
         _logger.error(f'An error occurred during server startup: {e}')
         sys.exit(1)

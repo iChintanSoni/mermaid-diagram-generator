@@ -26,6 +26,7 @@ def setup_logger(
     """
     logger = logging.getLogger(name)
     logger.setLevel(level)
+    logger.propagate = False
 
     # Prevent adding multiple handlers if the logger is already set up
     if not logger.handlers:

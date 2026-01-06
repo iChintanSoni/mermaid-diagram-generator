@@ -2,6 +2,17 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "Agent UI",
+            "type": "shell",
+            "options": {
+                "cwd": "${workspaceFolder}/agent-ui"
+            },
+            "command": "npm run dev",
+            "presentation": {
+                "panel": "dedicated"
+            }
+        },
+        {
             "label": "A2A Agent",
             "type": "shell",
             "options": {
@@ -9,7 +20,7 @@
             },
             "command": "uv run a2a-agent",
             "presentation": {
-                "panel": "dedicated",
+                "panel": "dedicated"
             }
         },
         {
@@ -20,7 +31,7 @@
             },
             "command": "sh run.sh",
             "presentation": {
-                "panel": "dedicated",
+                "panel": "dedicated"
             }
         },
         {
@@ -31,7 +42,7 @@
             },
             "command": "uv run main.py",
             "presentation": {
-                "panel": "dedicated",
+                "panel": "dedicated"
             }
         },
         {
@@ -42,7 +53,7 @@
             },
             "command": "sh run.sh",
             "presentation": {
-                "panel": "dedicated",
+                "panel": "dedicated"
             }
         },
         {
@@ -53,7 +64,7 @@
             },
             "command": "uv run mcp-server",
             "presentation": {
-                "panel": "dedicated",
+                "panel": "dedicated"
             }
         },
         {
@@ -64,7 +75,18 @@
             },
             "command": "sh run-in-container.sh",
             "presentation": {
-                "panel": "dedicated",
+                "panel": "dedicated"
+            }
+        },
+        {
+            "label": "Redis Store",
+            "type": "shell",
+            "options": {
+                "cwd": "${workspaceFolder}/redis-store"
+            },
+            "command": "sh run-in-container.sh",
+            "presentation": {
+                "panel": "dedicated"
             }
         },
         {
@@ -72,6 +94,7 @@
             "dependsOn": [
                 "MCP Server",
                 "A2A Agent",
+                "Agent UI"
             ],
             "dependsOrder": "parallel"
         }
