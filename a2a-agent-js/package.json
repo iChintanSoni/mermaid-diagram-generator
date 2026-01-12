@@ -1,0 +1,28 @@
+{
+  "name": "a2a-agent",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "tsc && node --env-file=.env dist/index.js",
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@a2a-js/sdk": "^0.3.7",
+    "@langchain/community": "^0.3.0",
+    "@langchain/core": "^0.3.0",
+    "@langchain/ollama": "^0.1.6",
+    "@zilliz/milvus2-sdk-node": "^2.4.0",
+    "express": "^5.2.1",
+    "langchain": "^0.3.0"
+  }
+}
