@@ -26,7 +26,7 @@ milvus_manager = MilvusManager()
 
 def log_documents(documents_with_score: List[Tuple[Document, float]]):
     shortened_results = [
-        doc.model_dump() | {
+        {
             "title":  doc.metadata.get("title"),
             "content": doc.page_content[:100],
             "score": f"{score:3f}"
