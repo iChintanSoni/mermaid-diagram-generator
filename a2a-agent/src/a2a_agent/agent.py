@@ -198,8 +198,14 @@ class MermaidAgent:
         _logger.info(
             f"Starting stream for thread {thread_id}: {message_text[:100]}...")
 
+        # Merge thread_id into config
+        run_config = config or {}
+        if "configurable" not in run_config:
+            run_config["configurable"] = {}
+        run_config["configurable"]["thread_id"] = thread_id
+
         try:
-            async for msg, metadata in self._graph.astream(
+            async for mode, payload in self._graph.astream(
                 {
                     "messages": [
                         {
@@ -208,18 +214,18 @@ class MermaidAgent:
                         }
                     ]
                 },
-                config=config,
+                config=run_config,
                 stream_mode=["messages", "updates"],
             ):
-                # _logger.debug(f"Stream msg: {msg} metadata: {metadata}")
+                if mode == "messages":
+                    msg, metadata = payload
+                    if hasattr(msg, 'content') and msg.content:
+                        _logger.info(f"Chunk content: {msg.content}")
+                        yield msg.content
 
-                if msg:
-                    _logger.info(f"Chunk: {msg}")
-                    yield msg
-
-                # Check for tool usage in the message chunk
-                if hasattr(msg, 'tool_call_chunks') and msg.tool_call_chunks:
-                    pass
+                    # Check for tool usage in the message chunk
+                    if hasattr(msg, 'tool_call_chunks') and msg.tool_call_chunks:
+                        pass
 
                 # If we want to simulate "on_tool_start", we might need to check the metadata or msg type
                 # But stream_mode="messages" focuses on AIMessages.

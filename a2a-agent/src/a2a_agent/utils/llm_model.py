@@ -1,12 +1,6 @@
-from langchain_ibm import ChatWatsonx
-
+from langchain_ollama import ChatOllama
 from a2a_agent.utils.env import Env
 
 env = Env()
 
-model = ChatWatsonx(
-    model_id=env.LLM_MODEL,
-    url=env.WATSONX_URL,
-    apikey=env.WATSONX_APIKEY,
-    project_id=env.WATSONX_PROJECT_ID,
-)
+model = ChatOllama(model=env.LLM_MODEL, base_url=env.OLLAMA_BASE_URL)
