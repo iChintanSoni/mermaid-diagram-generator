@@ -6,7 +6,7 @@ import {
   TaskStatusUpdateEvent,
   TaskArtifactUpdateEvent,
 } from "@a2a-js/sdk";
-import { ClientFactory } from "@a2a-js/sdk/client";
+import { createClientFactory } from "@/lib/agent-client";
 import { ChatSession } from "@/lib/db";
 import {
   getHistory,
@@ -113,7 +113,7 @@ export const sendMessageStream = createAsyncThunk<
       dispatch(setStreaming(true));
 
       // 3. Initialize SDK Client
-      const factory = new ClientFactory();
+      const factory = createClientFactory();
       const client = await factory.createFromUrl(agentUrl);
 
       // 4. Stream Response

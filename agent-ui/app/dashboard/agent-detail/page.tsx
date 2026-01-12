@@ -1,53 +1,62 @@
 "use client"
 
-import { AgentCard } from "@a2a-js/sdk";
+import { useSearchParams, useRouter } from "next/navigation"
+import { useEffect, useMemo, Suspense } from "react"
+import { useSelector } from "react-redux"
+import { RootState } from "@/lib/store"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { H1, H2, H3, H4, P, Lead, Muted, Small } from "@/components/ui/typography"
+import { H1, H2, H4, P, Lead, Muted, Small } from "@/components/ui/typography"
 import { Separator } from "@/components/ui/separator"
-import { ArrowUpRight, Box, Cpu, Globe, Layers, MessageSquare, Plus, Zap } from "lucide-react"
+import { ArrowUpRight, Box, Cpu, Globe, Layers, MessageSquare, Plus, Zap, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 
-// Mock Data for the agent detail view
-const agent: AgentCard = {
-    capabilities: {
-        pushNotifications: false,
-        streaming: true
-    },
-    defaultInputModes: ["text", "voice"],
-    defaultOutputModes: ["text", "image"],
-    description: "An advanced AI agent specialized in authoring Mermaid diagrams. It converts natural language descriptions into validated Mermaid syntax, returns diagrams embedded in Markdown, and can optionally render diagrams as SVG or PNG images.",
-    name: "Mermaid Diagram Agent",
-    preferredTransport: "JSONRPC",
-    protocolVersion: "0.3.0",
-    skills: [
-        {
-            description: "Generates clear, validated Mermaid diagrams from natural language. Supports flowcharts, sequence diagrams, architecture diagrams, and more.",
-            examples: [
-                "Create a sequence diagram for user login with OTP verification",
-                "Draw an architecture diagram for a microservices-based system"
-            ],
-            id: "generate_mermaid_diagrams",
-            name: "Mermaid Diagram Generation",
-            tags: ["mermaid", "visualization", "diagrams"]
-        },
-        {
-            description: "Validates existing Mermaid syntax and suggests fixes for errors.",
-            examples: [
-                "Check this mermaid code for errors",
-                "Fix the syntax in this flowchart"
-            ],
-            id: "validate_mermaid",
-            name: "Syntax Validation",
-            tags: ["validation", "syntax", "error-checking"]
-        }
-    ],
-    url: "http://127.0.0.1:4003/",
-    version: "1.0.0"
-}
+function AgentDetailContent() {
+    const searchParams = useSearchParams()
+    const router = useRouter()
+    const agentUrl = searchParams.get("url")
 
-export default function AgentDetail() {
+    const { agents, status } = useSelector((state: RootState) => state.agents)
+
+    const agent = useMemo(() => {
+        return agents.find(a => a.url === agentUrl)
+    }, [agents, agentUrl])
+
+    useEffect(() => {
+        if (status === "success" && !agent && agentUrl) {
+            // Agent not found but loaded, maybe redirect or show error
+        }
+    }, [status, agent, agentUrl])
+
+    if (!agentUrl) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
+                <P>No agent URL provided.</P>
+                <Link href="/dashboard">
+                    <Button variant="outline"><ArrowLeft className="mr-2 h-4 w-4" /> Go Back</Button>
+                </Link>
+            </div>
+        )
+    }
+
+    if (!agent) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[50vh] gap-4">
+                {status === "loading" ? (
+                    <P>Loading agent details...</P>
+                ) : (
+                    <>
+                        <P>Agent not found.</P>
+                        <Link href="/dashboard">
+                            <Button variant="outline"><ArrowLeft className="mr-2 h-4 w-4" /> Go Back</Button>
+                        </Link>
+                    </>
+                )}
+            </div>
+        )
+    }
+
     return (
         <div className="flex flex-col gap-8 p-6 md:p-8 max-w-5xl mx-auto animate-in fade-in duration-500">
             {/* Header Section */}
@@ -140,11 +149,11 @@ export default function AgentDetail() {
                     <CardContent className="space-y-3">
                         <div className="flex items-center justify-between p-3 rounded-md bg-background border transition-colors hover:border-primary/20">
                             <Small>Push Notifications</Small>
-                            <div className={`h-2.5 w-2.5 rounded-full ring-2 ring-offset-2 ring-offset-background ${agent.capabilities.pushNotifications ? "bg-green-500 ring-green-500/20" : "bg-zinc-300 ring-zinc-300/20"}`} />
+                            <div className={`h-2.5 w-2.5 rounded-full ring-2 ring-offset-2 ring-offset-background ${agent.capabilities?.pushNotifications ? "bg-green-500 ring-green-500/20" : "bg-zinc-300 ring-zinc-300/20"}`} />
                         </div>
                         <div className="flex items-center justify-between p-3 rounded-md bg-background border transition-colors hover:border-primary/20">
                             <Small>Streaming</Small>
-                            <div className={`h-2.5 w-2.5 rounded-full ring-2 ring-offset-2 ring-offset-background ${agent.capabilities.streaming ? "bg-green-500 ring-green-500/20" : "bg-zinc-300 ring-zinc-300/20"}`} />
+                            <div className={`h-2.5 w-2.5 rounded-full ring-2 ring-offset-2 ring-offset-background ${agent.capabilities?.streaming ? "bg-green-500 ring-green-500/20" : "bg-zinc-300 ring-zinc-300/20"}`} />
                         </div>
                     </CardContent>
                 </Card>
@@ -201,7 +210,7 @@ export default function AgentDetail() {
                             </CardContent>
                         </Card>
                     ))}
-                    {agent.skills.length === 0 && (
+                    {(!agent.skills || agent.skills.length === 0) && (
                         <div className="col-span-full py-12 text-center text-muted-foreground bg-muted/20 rounded-lg border border-dashed">
                             <Cpu className="h-8 w-8 mx-auto mb-2 opacity-50" />
                             <P>No skills listed for this agent.</P>
@@ -210,5 +219,13 @@ export default function AgentDetail() {
                 </div>
             </div>
         </div>
+    )
+}
+
+export default function AgentDetail() {
+    return (
+        <Suspense fallback={<div className="flex justify-center p-8"><P>Loading...</P></div>}>
+            <AgentDetailContent />
+        </Suspense>
     )
 }

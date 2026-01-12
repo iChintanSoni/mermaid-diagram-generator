@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { fetchAgentCard } from "@/lib/agent-client";
-import { saveAgent, getAgents } from "@/lib/db";
+import { saveAgent, getAgents, deleteAgent } from "@/lib/db";
 import { AgentCard } from "@a2a-js/sdk";
 
 type Status = "idle" | "loading" | "success" | "failure";
@@ -44,6 +44,20 @@ export const registerAgent = createAsyncThunk<
     return agentCard;
   } catch (error) {
     return rejectWithValue("An error occurred while registering the agent.");
+    return rejectWithValue("An error occurred while registering the agent.");
+  }
+});
+
+export const removeAgent = createAsyncThunk<
+  string,
+  string,
+  { rejectValue: string }
+>("agents/remove", async (url, { rejectWithValue }) => {
+  try {
+    await deleteAgent(url);
+    return url;
+  } catch (error) {
+    return rejectWithValue("Failed to delete agent");
   }
 });
 
@@ -82,6 +96,9 @@ export const agentsSlice = createSlice({
       .addCase(registerAgent.rejected, (state, action) => {
         state.registrationStatus = "failure";
         state.registrationError = action.payload as string;
+      })
+      .addCase(removeAgent.fulfilled, (state, action) => {
+        state.agents = state.agents.filter(a => a.url !== action.payload);
       });
 
     // Fetch Agents

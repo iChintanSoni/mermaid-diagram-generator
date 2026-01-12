@@ -65,6 +65,18 @@ export const getAgents = async (): Promise<AgentCard[]> => {
     });
 };
 
+export const deleteAgent = async (url: string): Promise<void> => {
+    const db = await initDB();
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction([STORE_NAME], "readwrite");
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.delete(url);
+
+        request.onerror = () => reject("Failed to delete agent");
+        request.onsuccess = () => resolve();
+    });
+};
+
 export const saveSession = async (session: ChatSession): Promise<void> => {
     const db = await initDB();
     return new Promise((resolve, reject) => {

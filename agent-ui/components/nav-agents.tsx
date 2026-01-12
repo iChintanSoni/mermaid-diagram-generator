@@ -1,12 +1,13 @@
 "use client";
 
-import { SidebarGroup, SidebarGroupAction, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "./ui/sidebar";
-import { Plus } from "lucide-react";
+import { SidebarGroup, SidebarGroupAction, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuAction, SidebarMenuButton, SidebarMenuItem, useSidebar } from "./ui/sidebar";
+import { Folder, MoreHorizontal, Plus, Trash2 } from "lucide-react";
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/lib/store";
-import { fetchAgents } from "@/lib/features/agents-slice";
+import { fetchAgents, removeAgent } from "@/lib/features/agents-slice";
 import { AddAgentDialog } from "@/components/add-agent";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 
 export default function NavAgents() {
   const { isMobile } = useSidebar();
@@ -16,6 +17,12 @@ export default function NavAgents() {
   useEffect(() => {
     dispatch(fetchAgents());
   }, [dispatch]);
+
+  const handleDelete = (url: string) => {
+    if (confirm("Are you sure you want to remove this agent?")) {
+      dispatch(removeAgent(url));
+    }
+  };
 
   return (
     <>
@@ -36,9 +43,36 @@ export default function NavAgents() {
               <SidebarMenuItem key={agent.url}>
                 <SidebarMenuButton asChild>
                   <a href={`/dashboard/agent-detail?url=${encodeURIComponent(agent.url)}`}>
-                    {agent.name}
+                    <span>{agent.name}</span>
                   </a>
                 </SidebarMenuButton>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <SidebarMenuAction showOnHover>
+                      <MoreHorizontal />
+                      <span className="sr-only">More</span>
+                    </SidebarMenuAction>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    className="w-48 rounded-lg"
+                    side={isMobile ? "bottom" : "right"}
+                    align={isMobile ? "end" : "start"}
+                  >
+                    <DropdownMenuItem>
+                      <Folder className="text-muted-foreground" />
+                      <span>View Project</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Folder className="text-muted-foreground" />
+                      <span>Share Project</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => handleDelete(agent.url)}>
+                      <Trash2 className="text-muted-foreground" />
+                      <span>Delete Agent</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </SidebarMenuItem>
             ))}
             {status === "loading" && agents.length === 0 && (
