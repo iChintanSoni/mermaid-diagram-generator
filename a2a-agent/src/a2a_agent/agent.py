@@ -209,20 +209,16 @@ class MermaidAgent:
                     ]
                 },
                 config=config,
-                stream_mode="updates",
+                stream_mode=["messages", "updates"],
             ):
                 # _logger.debug(f"Stream msg: {msg} metadata: {metadata}")
 
-                if msg.content:
-                    yield msg.content
+                if msg:
+                    _logger.info(f"Chunk: {msg}")
+                    yield msg
 
                 # Check for tool usage in the message chunk
                 if hasattr(msg, 'tool_call_chunks') and msg.tool_call_chunks:
-                    # Only yield status if it's the first chunk of a tool call or similar?
-                    # For now, simplistic approach: if we see tool chunks, we can log or yield status.
-                    # But msg.tool_call_chunks is a list of ToolCallChunk.
-                    # We can't easily get the tool name from the first chunk always if it's split.
-                    # However, let's keep it simple for now and rely on content validation.
                     pass
 
                 # If we want to simulate "on_tool_start", we might need to check the metadata or msg type
